@@ -3,20 +3,20 @@ This Module contains funstions for loading the segmentation model and inpainting
 
 """
 
-# Imports 
+# Imports
 from diffusers import DiffusionPipeline
 from diffusers import StableDiffusionInpaintPipeline
 from transformers import AutoFeatureExtractor, SegformerForSemanticSegmentation
 from torchvision.transforms.functional import to_pil_image
 from PIL import Image
-import torch.nn as nn
 import torch
+
 
 # Functions
 def load_seg(model_card: str = "mattmdjaga/segformer_b2_clothes"):
     """
     Load The Segmentation Extractor and Model.
-    
+
     Parameters:
     model_card: HuggingFace Model Card. Default: mattmdjaga/segformer_b2_clothes
 
@@ -28,6 +28,7 @@ def load_seg(model_card: str = "mattmdjaga/segformer_b2_clothes"):
     model = SegformerForSemanticSegmentation.from_pretrained(model_card)
     return extractor, model
 
+
 def load_inpainting(using_prompt: bool = False):
     """
     Load Inpaining Model.
@@ -36,14 +37,14 @@ def load_inpainting(using_prompt: bool = False):
     using_prompt: If using a prompt based inpainting model or image based inpainting model. Default: False
 
     Returns:
-    pipe: Diffusion Pipeline mounted onto the device 
+    pipe: Diffusion Pipeline mounted onto the device
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if using_prompt:
         pipe = StableDiffusionInpaintPipeline.from_pretrained(
             "runwayml/stable-diffusion-inpainting",
             revision="fp16",
-            torch_dtype=torch.float16
+            torch_dtype=torch.float16,
         )
         pipe = pipe.to(device)
     else:
@@ -53,6 +54,7 @@ def load_inpainting(using_prompt: bool = False):
         )
         pipe = pipe.to(device)
     return pipe
+
 
 def generate_mask(image_name: str, extractor, model):
     """
@@ -83,12 +85,13 @@ def generate_mask(image_name: str, extractor, model):
     pred_seg = upsampled_logits.argmax(dim=1)[0]
     pred_seg[pred_seg != 4] = 0
     pred_seg[pred_seg == 4] = 1
-    pred_seg = pred_seg.to(dtype = torch.float32)
+    pred_seg = pred_seg.to(dtype=torch.float32)
     # pred_seg = pred_seg.unsqueeze(dim = 0)
     mask = to_pil_image(pred_seg)
     return image, mask
 
-def generate_image(image, mask, pipe, example_name = None, prompt = None):
+
+def generate_image(image, mask, pipe, example_name=None, prompt=None):
     """
     Generate Edited Image. Uses Example Image or Prompt.
 
@@ -106,7 +109,7 @@ def generate_image(image, mask, pipe, example_name = None, prompt = None):
     """
     if example_name:
         example = Image.open(example_name)
-        gen = pipe(image=image, mask_image = mask, example_image = example).images[0]
+        gen = pipe(image=image, mask_image=mask, example_image=example).images[0]
     elif prompt:
         gen = pipe(prompt=prompt, image=image, mask_image=mask).images[0]
     else:
@@ -114,10 +117,11 @@ def generate_image(image, mask, pipe, example_name = None, prompt = None):
         print("Neither Example Image nor Prompt provided.")
     return image, mask, gen
 
-def load(using_prompt = False):
+
+def load(using_prompt=False):
     """
     Loads Segmentation and Inpainting Model.
-    
+
     Parameters:
     using_prompt: If using a prompt based inpainting model or image based inpainting model. Default: False
 
@@ -130,7 +134,8 @@ def load(using_prompt = False):
     pipe = load_inpainting(using_prompt)
     return extractor, model, pipe
 
-def generate(image_name, extractor, model, pipe, example_name = None, prompt = None):
+
+def generate(image_name, extractor, model, pipe, example_name=None, prompt=None):
     """
     Generate Preview.
 
@@ -146,10 +151,6 @@ def generate(image_name, extractor, model, pipe, example_name = None, prompt = N
     gen: PIL Image of Generated Preview
     """
     image, mask = generate_mask(image_name, extractor, model)
-    res = int(mask.size[1] * 512/mask.size(0))
+    res = int(mask.size[1] * 512 / mask.size[0])
     image, mask, gen = generate_image(image, mask, pipe, example_name, prompt)
     return gen.resize((512, res))
-
-
-
-
