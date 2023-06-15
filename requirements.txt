@@ -1,0 +1,7 @@
+torch
+torchvision
+transformers 
+diffusers 
+accelerate
+PIL
+matplotlib
