@@ -109,7 +109,7 @@ def generate_image(image, mask, pipe, example_name=None, prompt=None):
     """
     if example_name:
         example = Image.open(example_name)
-        gen = pipe(image=image, mask_image=mask, example_image=example).images[0]
+        gen = pipe(image=image.resize((512,512)), mask_image=mask.resize((512,512)), example_image=example.resize((512,512))).images[0]
     elif prompt:
         gen = pipe(prompt=prompt, image=image, mask_image=mask).images[0]
     else:
