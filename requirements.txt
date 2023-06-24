@@ -3,5 +3,5 @@ torchvision
 transformers 
 diffusers 
 accelerate
-PIL
+Pillow
 matplotlib
