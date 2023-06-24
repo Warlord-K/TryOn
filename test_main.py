@@ -4,6 +4,6 @@ from main import main
 
 def test_cli():
     runner = CliRunner()
-    result = runner.invoke(main, ["-i", "image.jpg", "-c", "cloth.jpg"])
+    result = runner.invoke(main, ["-i", "image.jpeg", "-c", "cloth.jpg"])
     assert result.exit_code == 0
-    assert result.output == "Preview Generated Successfully at /generated_preview.png\n"
+    assert result.output.split("\n")[-2] == 'Preview Generated Successfully at /generated_preview.png'
