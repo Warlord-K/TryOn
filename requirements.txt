@@ -7,3 +7,7 @@ Pillow
 matplotlib
 fastapi
 uvicorn
+beautifulsoup4
+lxml
+html5lib
+selenium
