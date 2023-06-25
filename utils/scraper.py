@@ -47,4 +47,4 @@ def extract_link(url):
         return extract_link_myntra(url)
     if 'amazon' in url:
         return extract_link_amazon(url)
-    return "Link Not from Flipkart, Myntra or Amazon"
+    return None

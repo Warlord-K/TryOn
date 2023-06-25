@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 import uvicorn
 from utils.model import load, generate
+from utils.scraper import extract_link
 import tempfile
 
 LOADED = False
@@ -32,6 +33,10 @@ async def generate_(image_path: str, cloth_path: str = None, prompt: str = None)
     """
     using_prompt = True if prompt else False
     extractor, model, pipe = load(using_prompt)
+    image_url = extract_link(image_path)
+    cloth_url = extract_link(cloth_path)
+    image_path = image_url if image_url else image_path
+    cloth_path = cloth_url if cloth_url else cloth_path
     gen = generate(image_path, extractor, model, pipe, cloth_path, prompt)
     temp_file = tempfile.mkstemp(suffix=".jpg")
     gen.save(temp_file[-1])
