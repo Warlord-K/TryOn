@@ -10,7 +10,7 @@ async def root():
     return {"message": "route working"}
 
 @app.get("/generate")
-async def generate(image_path : str, cloth_path : str = None, prompt : str = None):
+async def generate_(image_path : str, cloth_path : str = None, prompt : str = None):
     """
     Generate Image.
 
