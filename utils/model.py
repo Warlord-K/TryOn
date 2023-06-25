@@ -10,7 +10,7 @@ from transformers import AutoFeatureExtractor, SegformerForSemanticSegmentation
 from torchvision.transforms.functional import to_pil_image
 from PIL import Image
 import torch
-
+import requests
 
 # Functions
 def load_seg(model_card: str = "mattmdjaga/segformer_b2_clothes"):
@@ -69,7 +69,10 @@ def generate_mask(image_name: str, extractor, model):
     image: PIL Image of Input Image
     mask: PIL Image of Generated Mask
     """
-    image = Image.open(image_name)
+    try:
+        image = Image.open(image_name)
+    except Exception as e:
+        image = Image.open(requests.get(image_name, stream=True).raw)
     inputs = extractor(images=image, return_tensors="pt")
 
     outputs = model(**inputs)
@@ -108,7 +111,10 @@ def generate_image(image, mask, pipe, example_name=None, prompt=None):
     gen: PIL Image of Generated Preview
     """
     if example_name:
-        example = Image.open(example_name)
+        try:
+            image = Image.open(example_name)
+        except Exception as e:
+            image = Image.open(requests.get(example_name, stream=True).raw)
         gen = pipe(
             image=image.resize((512, 512)),
             mask_image=mask.resize((512, 512)),

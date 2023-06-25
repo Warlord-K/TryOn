@@ -5,3 +5,5 @@ diffusers
 accelerate
 Pillow
 matplotlib
+fastapi
+uvicorn
