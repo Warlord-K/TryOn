@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 import uvicorn
 from utils.model import load, generate
 
@@ -10,7 +10,7 @@ async def root():
     return {"message": "route working"}
 
 @app.get("/generate")
-async def add(request : Request):
+async def generate(image_path : str, cloth_path : str = None, prompt : str = None):
     """
     Generate Image.
 
@@ -26,11 +26,6 @@ async def add(request : Request):
     gen: Generated Image
     }
     """
-    image_path = request.get("image", None)
-    if not image_path:
-        return {"Error": "No Image Provided"}
-    cloth_path = request.get("cloth", None)
-    prompt = request.get("prompt", None)
     using_prompt = True if prompt else False
     if not LOADED:
         extractor, model, pipe = load(using_prompt)
