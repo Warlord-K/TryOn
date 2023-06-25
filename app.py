@@ -29,6 +29,7 @@ async def generate_(image_path : str, cloth_path : str = None, prompt : str = No
     using_prompt = True if prompt else False
     if not LOADED:
         extractor, model, pipe = load(using_prompt)
+        LOADED = True
     gen = generate(image_path, extractor, model, pipe, cloth_path, prompt)
     temp_file = tempfile.mkstemp(suffix = '.jpg')
     gen.save(temp_file[-1])

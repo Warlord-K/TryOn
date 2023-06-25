@@ -123,11 +123,11 @@ def generate_image(image, mask, pipe, example_name=None, prompt=None):
     """
     if example_name:
         try:
-            image = Image.open(example_name)
+            example = Image.open(example_name)
         except Exception as e:
-            image = Image.open(requests.get(example_name, stream=True).raw)
+            example = Image.open(requests.get(example_name, stream=True).raw)
         gen = pipe(
-            image=image.resize((512, 512)),
+            image = image.resize((512, 512)),
             mask_image=mask.resize((512, 512)),
             example_image=example.resize((512, 512)),
         ).images[0]
