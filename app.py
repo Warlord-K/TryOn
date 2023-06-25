@@ -1,10 +1,12 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 import uvicorn
 from utils.model import load, generate
-
+import tempfile
+from starlette.background import BackgroundTask
+import os
 LOADED = False
 app = FastAPI()
-
 @app.get("/")
 async def root():
     return {"message": "route working"}
@@ -30,8 +32,9 @@ async def generate_(image_path : str, cloth_path : str = None, prompt : str = No
     if not LOADED:
         extractor, model, pipe = load(using_prompt)
     gen = generate(image_path, extractor, model, pipe, cloth_path, prompt)
-
-    return {"gen": gen}
+    temp_file = tempfile.NamedTemporaryFile(suffix = '.jpg')
+    gen.save(temp_file.name)
+    return FileResponse(temp_file.name, background = BackgroundTask(os.remove, temp_file.name))
 
 if __name__ == '__main__':
     uvicorn.run(app, port=8000, host='0.0.0.0')
