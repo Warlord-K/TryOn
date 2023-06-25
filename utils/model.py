@@ -29,7 +29,7 @@ def load_seg(model_card: str = "mattmdjaga/segformer_b2_clothes"):
     return extractor, model
 
 
-def load_inpainting(using_prompt: bool = False):
+def load_inpainting(using_prompt: bool = False, fast : bool = False):
     """
     Load Inpaining Model.
 
@@ -41,18 +41,29 @@ def load_inpainting(using_prompt: bool = False):
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if using_prompt:
-        pipe = StableDiffusionInpaintPipeline.from_pretrained(
-            "runwayml/stable-diffusion-inpainting",
-            revision="fp16",
-            torch_dtype=torch.float16,
-        )
-        pipe = pipe.to(device)
+        if fast:
+            pipe = StableDiffusionInpaintPipeline.from_pretrained(
+                "runwayml/stable-diffusion-inpainting",
+                revision="fp16",
+                torch_dtype=torch.float16,
+            )
+        else:
+            pipe = StableDiffusionInpaintPipeline.from_pretrained(
+                "runwayml/stable-diffusion-inpainting",
+                torch_dtype=torch.float32,
+            )
     else:
-        pipe = DiffusionPipeline.from_pretrained(
-            "Fantasy-Studio/Paint-by-Example",
-            torch_dtype=torch.float16,
-        )
-        pipe = pipe.to(device)
+        if fast:
+            pipe = DiffusionPipeline.from_pretrained(
+                "Fantasy-Studio/Paint-by-Example",
+                torch_dtype=torch.float16,
+            )
+        else:
+            pipe = DiffusionPipeline.from_pretrained(
+                "Fantasy-Studio/Paint-by-Example",
+                torch_dtype=torch.float32,
+            )
+    pipe = pipe.to(device)
     return pipe
 
 
