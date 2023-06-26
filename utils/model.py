@@ -10,6 +10,7 @@ from transformers import AutoFeatureExtractor, SegformerForSemanticSegmentation
 from torchvision.transforms.functional import to_pil_image
 from PIL import Image
 import torch
+import numpy as np
 import urllib.request
 
 
@@ -105,6 +106,10 @@ def generate_mask(image_name: str, extractor, model):
     mask = to_pil_image(pred_seg)
     return image, mask
 
+def get_cloth(cloth_image, extractor, model):
+    cloth = np.array(cloth_image)
+    cloth[np.array(cloth_mask) == 0] = 0
+    return to_pil_image(cloth)
 
 def generate_image(image, mask, pipe, example_name=None, prompt=None):
     """
@@ -139,6 +144,39 @@ def generate_image(image, mask, pipe, example_name=None, prompt=None):
         print("Neither Example Image nor Prompt provided.")
     return image, mask, gen
 
+def generate_image_with_mask(image, mask, pipe, extractor, model, example_name=None, prompt=None):
+    """
+    Generate Edited Image. Uses Example Image or Prompt. Extracts the Cloth from the cloth image.
+
+    Parameters:
+    image: PIL Image of The Image to Edit.
+    mask: PIL Image of the Mask.
+    pipe: DiffusionPipeline
+    example_name: Path to Image of the cloth.
+    prompt: Editing Prompt, if not using Example Image.
+
+    Returns:
+    image: PIL Image of Input Image
+    mask: PIL Image of Generated Mask
+    gen: PIL Image of Generated Preview
+    """
+    if example_name:
+        try:
+            example = Image.open(example_name)
+        except Exception as e:
+            example = Image.open(urllib.request.urlopen(example_name))
+        cloth = get_cloth(cloth, extractor, model)
+        gen = pipe(
+            image=image.resize((512, 512)),
+            mask_image=mask.resize((512, 512)),
+            example_image=cloth.resize((512, 512)),
+        ).images[0]
+    elif prompt:
+        gen = pipe(prompt=prompt, image=image, mask_image=mask).images[0]
+    else:
+        gen = None
+        print("Neither Example Image nor Prompt provided.")
+    return image, mask, gen
 
 def load(using_prompt=False):
     """
@@ -175,4 +213,24 @@ def generate(image_name, extractor, model, pipe, example_name=None, prompt=None)
     image, mask = generate_mask(image_name, extractor, model)
     res = int(mask.size[1] * 512 / mask.size[0])
     image, mask, gen = generate_image(image, mask, pipe, example_name, prompt)
+    return gen.resize((512, res))
+
+def generate_with_mask(image_name, extractor, model, pipe, example_name=None, prompt=None):
+    """
+    Generate Preview.
+
+    Parameters:
+    image_name: Path to Input Image
+    extractor: Feature Extractor
+    model: Segmentation Model
+    pipe: DiffusionPipeline
+    example_name: Path to Image of the cloth.
+    prompt: Editing Prompt, if not using Example Image.
+
+    Returns:
+    gen: PIL Image of Generated Preview
+    """
+    image, mask = generate_mask(image_name, extractor, model)
+    res = int(mask.size[1] * 512 / mask.size[0])
+    image, mask, gen = generate_image_with_mask(image, mask, pipe, extractor, model, example_name, prompt)
     return gen.resize((512, res))
