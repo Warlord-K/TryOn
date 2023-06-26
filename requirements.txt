@@ -10,4 +10,4 @@ uvicorn
 beautifulsoup4
 lxml
 html5lib
-selenium
+selenium==4.9.0

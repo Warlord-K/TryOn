@@ -12,6 +12,7 @@ from PIL import Image
 import torch
 import urllib.request
 
+
 # Functions
 def load_seg(model_card: str = "mattmdjaga/segformer_b2_clothes"):
     """
@@ -29,7 +30,7 @@ def load_seg(model_card: str = "mattmdjaga/segformer_b2_clothes"):
     return extractor, model
 
 
-def load_inpainting(using_prompt: bool = False, fast : bool = False):
+def load_inpainting(using_prompt: bool = False, fast: bool = False):
     """
     Load Inpaining Model.
 
@@ -127,7 +128,7 @@ def generate_image(image, mask, pipe, example_name=None, prompt=None):
         except Exception as e:
             example = Image.open(urllib.request.urlopen(example_name))
         gen = pipe(
-            image = image.resize((512, 512)),
+            image=image.resize((512, 512)),
             mask_image=mask.resize((512, 512)),
             example_image=example.resize((512, 512)),
         ).images[0]
