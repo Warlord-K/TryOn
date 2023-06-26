@@ -106,7 +106,8 @@ def generate_mask(image_name: str, extractor, model):
     mask = to_pil_image(pred_seg)
     return image, mask
 
-def get_cloth(cloth_image, extractor, model):
+def get_cloth(cloth_name, extractor, model):
+    cloth_image, cloth_mask = generate_mask(cloth_name, extractor, model)
     cloth = np.array(cloth_image)
     cloth[np.array(cloth_mask) == 0] = 0
     return to_pil_image(cloth)
@@ -161,11 +162,7 @@ def generate_image_with_mask(image, mask, pipe, extractor, model, example_name=N
     gen: PIL Image of Generated Preview
     """
     if example_name:
-        try:
-            example = Image.open(example_name)
-        except Exception as e:
-            example = Image.open(urllib.request.urlopen(example_name))
-        cloth = get_cloth(cloth, extractor, model)
+        cloth = get_cloth(example_name, extractor, model)
         gen = pipe(
             image=image.resize((512, 512)),
             mask_image=mask.resize((512, 512)),
