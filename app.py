@@ -49,7 +49,7 @@ async def generate_(image_path: str, cloth_path: str = None, prompt: str = None)
     return FileResponse(temp_file[-1])
 
 @app.get("/generate_m")
-async def generate_(image_path: str, cloth_path: str = None, prompt: str = None):
+async def generate_with_mask_(image_path: str, cloth_path: str = None, prompt: str = None):
     """
     Generate Image.
 
