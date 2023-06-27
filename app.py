@@ -3,13 +3,17 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from pydantic import BaseModel, Field
-from utils.model import load, generate
+from utils.model import load, generate, load_seg, load_inpainting
 from utils.scraper import extract_link
 import tempfile
 from typing import Optional
 
 LOADED = False
 app = FastAPI()
+
+extractor, model = load_seg()
+prompt_pipe = load_inpainting(using_prompt=True)
+cloth_pipe = load_inpainting()
 
 origins = ["*"]
 
@@ -21,10 +25,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class Body(BaseModel):
     image_path: str
     cloth_path: str
-    prompt: Optional[str] = ""
+    prompt: Optional[str] = None
+
 
 @app.get("/")
 async def root():
@@ -52,12 +58,14 @@ async def generate_(body: Body):
     }
     """
     using_prompt = True if prompt else False
-    extractor, model, pipe = load(using_prompt)
     image_url = extract_link(image_path)
     cloth_url = extract_link(cloth_path)
     image_path = image_url if image_url else image_path
     cloth_path = cloth_url if cloth_url else cloth_path
-    gen = generate(image_path, extractor, model, pipe, cloth_path, prompt)
+    if using_prompt:
+        gen = generate(image_path, extractor, model, prompt_pipe, cloth_path, prompt)
+    else:
+        gen = generate(image_path, extractor, model, cloth_pipe, cloth_path, prompt)
     temp_file = tempfile.mkstemp(suffix=".jpg")
     gen.save(temp_file[-1])
     return FileResponse(temp_file[-1])
