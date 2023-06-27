@@ -1,21 +1,41 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from pydantic import BaseModel, Field
 from utils.model import load, generate
 from utils.scraper import extract_link
 import tempfile
+from typing import Optional
 
 LOADED = False
 app = FastAPI()
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class Body(BaseModel):
+    image_path: str
+    cloth_path: str
+    prompt: Optional[str] = ""
 
 @app.get("/")
 async def root():
     return {"message": "route working"}
 
 
-@app.get("/generate")
-async def generate_(image_path: str, cloth_path: str = None, prompt: str = None):
+@app.post("/generate")
+async def generate_(body: Body):
+    prompt = body.prompt
+    image_path = body.image_path
+    cloth_path = body.cloth_path
     """
     Generate Image.
 
